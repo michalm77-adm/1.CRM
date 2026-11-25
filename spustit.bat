@@ -12,7 +12,7 @@ if errorlevel 1 (
 
 if not exist .env (
   copy .env.example .env >nul
-  echo Vytvoril jsem soubor .env. Otevre se v Poznamkovem bloku: zmente hesla, ulozte a zavrete ho.
+  echo Vytvoril jsem soubor .env s nastavenim. Prihlaseni: admin / admin. Soubor muzete jen zavrit.
   notepad .env
 )
 

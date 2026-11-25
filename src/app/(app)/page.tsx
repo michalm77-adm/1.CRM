@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { ActivityList } from '@/components/ActivityList';
@@ -7,6 +8,7 @@ import { RoleBadges } from '@/components/Badges';
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ chyba?: string }> }) {
   const user = await requireUser();
   const { chyba } = await searchParams;
+  const defaultPassword = user.username === 'admin' && (await bcrypt.compare('admin', user.passwordHash));
   const endOfToday = new Date();
   endOfToday.setHours(23, 59, 59, 999);
   const [clients, customers, products, open, overdue, myTasks, recent] = await Promise.all([
@@ -26,6 +28,11 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     <>
       <div className="eyebrow">Nástěnka</div>
       <h1>Dobrý den, {user.name.split(' ')[0]}</h1>
+      {defaultPassword && (
+        <div className="notice" style={{ margin: '12px 0' }}>
+          Účet admin má výchozí heslo „admin“. Pro běh jen na vašem počítači to stačí, před zpřístupněním dalším lidem ho změňte v sekci <Link className="accent" href="/uzivatele">Uživatelé</Link>.
+        </div>
+      )}
       {chyba === 'opravneni' && <div className="error" style={{ margin: '12px 0' }}>Na tuto akci nemáte oprávnění.</div>}
       <div className="cards" style={{ marginTop: 20 }}>
         <Link href="/aktivity" className="card stat"><div className="n">{open}</div><div className="l">Moje otevřené aktivity</div></Link>

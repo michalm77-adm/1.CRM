@@ -31,11 +31,14 @@ async function sendLoginCode(user: { id: number; email: string; name: string }) 
 }
 
 export async function login(_prev: State, fd: FormData): Promise<State> {
+  // Přihlašovací jméno nebo e-mail
   const email = String(fd.get('email') ?? '').trim().toLowerCase();
   const password = String(fd.get('password') ?? '');
-  const user = email ? await db.user.findUnique({ where: { email } }) : null;
+  const user = email
+    ? await db.user.findFirst({ where: email.includes('@') ? { email } : { username: email } })
+    : null;
   const ok = user && user.active && (await bcrypt.compare(password, user.passwordHash));
-  if (!ok) return { error: 'Nesprávný e-mail nebo heslo.', email };
+  if (!ok) return { error: 'Nesprávné jméno, e-mail nebo heslo.', email };
   if (!codeRequired()) {
     await startSession(user.id, user.role);
     redirect('/');

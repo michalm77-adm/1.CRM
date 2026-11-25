@@ -36,9 +36,16 @@ export async function updateUser(fd: FormData) {
   if (id === me.id && (role !== 'ADMIN' || !active)) fail('Sám sobě nemůžete odebrat roli admina ani účet vypnout.');
   const password = str(fd, 'password');
   if (password && password.length < 8) fail('Nové heslo musí mít alespoň 8 znaků.');
+  const username = str(fd, 'username')?.toLowerCase() ?? null;
+  if (username && (username.includes('@') || !/^[a-z0-9._-]{2,40}$/.test(username))) fail('Uživatelské jméno smí obsahovat jen písmena bez diakritiky, čísla, tečku, pomlčku a podtržítko.');
+  if (username) {
+    const other = await db.user.findUnique({ where: { username } });
+    if (other && other.id !== id) fail('Toto uživatelské jméno už má jiný účet.');
+  }
   await db.user.update({
     where: { id },
     data: {
+      username,
       name: str(fd, 'name') ?? undefined,
       role,
       active,

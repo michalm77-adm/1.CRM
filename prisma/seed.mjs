@@ -15,7 +15,7 @@ if (existsSync('.env')) {
 const prisma = new PrismaClient();
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@2melektro.eu';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ZmenHeslo-Admin1';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
 const TEST_PASSWORD = process.env.TEST_USER_PASSWORD || 'ZmenHeslo-Test1';
 
 const roles = ['OBCHODNIK', 'OBCHODNIK', 'OBCHODNIK', 'OBCHODNIK', 'TECHNIK', 'TECHNIK', 'TECHNIK', 'TECHNIK', 'OBCHODNIK', 'TECHNIK'];
@@ -35,10 +35,11 @@ const codeLists = {
 
 async function main() {
   const adminHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+  const taken = await prisma.user.findUnique({ where: { username: 'admin' } });
   await prisma.user.upsert({
     where: { email: ADMIN_EMAIL },
-    update: {},
-    create: { email: ADMIN_EMAIL, name: 'Administrátor', role: 'ADMIN', passwordHash: adminHash },
+    update: taken ? {} : { username: 'admin' },
+    create: { email: ADMIN_EMAIL, username: taken ? null : 'admin', name: 'Administrátor', role: 'ADMIN', passwordHash: adminHash },
   });
 
   const testHash = await bcrypt.hash(TEST_PASSWORD, 10);
@@ -59,7 +60,7 @@ async function main() {
     });
   }
 
-  console.log('Hotovo. Admin:', ADMIN_EMAIL, '| testovací účty: test01–test10@2melektro.eu');
+  console.log('Hotovo. Admin: jméno "admin" nebo', ADMIN_EMAIL, '| testovací účty: test01–test10@2melektro.eu');
 }
 
 main().finally(() => prisma.$disconnect());

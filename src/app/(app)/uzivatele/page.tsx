@@ -22,15 +22,16 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
       {chyba && <div className="error" style={{ marginBottom: 16 }}>{chyba}</div>}
       <div className="table-wrap" style={{ marginBottom: 20 }}>
         <table>
-          <thead><tr><th>E-mail</th><th>Jméno · Role · Nové heslo · Aktivní</th></tr></thead>
+          <thead><tr><th>E-mail</th><th>Jméno · Přihlašovací jméno · Role · Nové heslo · Aktivní</th></tr></thead>
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>
                 <td style={{ color: 'var(--text-strong)', fontWeight: 600, whiteSpace: 'nowrap' }}>{u.email}</td>
                 <td>
-                  <form action={updateUser} style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1fr auto auto', gap: 8, alignItems: 'center' }}>
+                  <form action={updateUser} style={{ display: 'grid', gridTemplateColumns: '1.3fr 0.8fr 1fr 1fr auto auto', gap: 8, alignItems: 'center' }}>
                     <input type="hidden" name="id" value={u.id} />
                     <input name="name" defaultValue={u.name} aria-label="Jméno" />
+                    <input name="username" defaultValue={u.username ?? ''} placeholder="(jen e-mail)" aria-label="Přihlašovací jméno" />
                     {roleSelect(u.role)}
                     <input name="password" type="password" placeholder="ponechat" autoComplete="new-password" aria-label="Nové heslo" />
                     <label className="check"><input type="checkbox" name="active" defaultChecked={u.active} /> Aktivní</label>

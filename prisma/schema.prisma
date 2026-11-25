@@ -14,6 +14,7 @@ datasource db {
 model User {
   id           Int        @id @default(autoincrement())
   email        String     @unique
+  username     String?    @unique // volitelné přihlašovací jméno (např. "admin")
   name         String
   passwordHash String
   role         String     @default("OBCHODNIK")
