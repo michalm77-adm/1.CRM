@@ -17,7 +17,16 @@ je v dokumentu „Návrh vlastního CRM“. Tato verze je **1. etapa: základ**.
   osobám, produktům i aktivitám; vlastní stavy a kategorie klientů.
 - **Uživatelé:** zakládání, role, vypnutí účtu, změna hesla.
 
-## Spuštění na vlastním počítači (Windows, macOS, Linux)
+## Nejrychlejší spuštění ve Windows
+
+1. Nainstalujte **Node.js LTS** z https://nodejs.org (stačí jednou).
+2. Rozbalte ZIP do libovolné složky a dvakrát klikněte na **`spustit.bat`**.
+3. Při prvním spuštění se otevře soubor `.env` v Poznámkovém bloku: změňte hesla, uložte a zavřete.
+4. Po instalaci (první spuštění trvá několik minut) se sám otevře prohlížeč na http://localhost:3000.
+
+Okno příkazového řádku nechte otevřené, dokud CRM používáte. Na macOS / Linuxu je obdoba `spustit.sh`.
+
+## Spuštění ručně (Windows, macOS, Linux)
 
 Potřebujete **Node.js 20 nebo novější** (https://nodejs.org, verze LTS) a Git.
 
