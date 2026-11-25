@@ -6,13 +6,11 @@ import { db } from '@/lib/db';
 import { endSession, startSession } from '@/lib/auth';
 import { checkCode, issueCode } from '@/lib/auth-codes';
 import { sendMail } from '@/lib/mail';
+import { loginMode } from '@/lib/login-mode';
 import { PENDING_COOKIE, signPending, verifyPending, type PendingPayload } from '@/lib/session-token';
 
 type State = { error?: string; info?: string; email?: string; at?: number } | undefined;
 
-function codeRequired() {
-  return process.env.LOGIN_EMAIL_CODE !== '0';
-}
 
 async function setPending(p: PendingPayload) {
   (await cookies()).set(PENDING_COOKIE, await signPending(p), { httpOnly: true, sameSite: 'lax', path: '/', maxAge: 15 * 60, secure: process.env.COOKIE_SECURE === '1' });
@@ -37,9 +35,15 @@ export async function login(_prev: State, fd: FormData): Promise<State> {
   const user = email
     ? await db.user.findFirst({ where: email.includes('@') ? { email } : { username: email } })
     : null;
+  const mode = loginMode();
+  if (mode === 'bez-hesla') {
+    if (!user || !user.active) return { error: 'Uživatel s tímto jménem nebo e-mailem neexistuje.', email };
+    await startSession(user.id, user.role);
+    redirect('/');
+  }
   const ok = user && user.active && (await bcrypt.compare(password, user.passwordHash));
   if (!ok) return { error: 'Nesprávné jméno, e-mail nebo heslo.', email };
-  if (!codeRequired()) {
+  if (mode === 'heslo') {
     await startSession(user.id, user.role);
     redirect('/');
   }

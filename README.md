@@ -22,7 +22,7 @@ je v dokumentu „Návrh vlastního CRM“. Tato verze je **1. etapa: základ**.
 
 1. Nainstalujte **Node.js LTS** z https://nodejs.org (stačí jednou).
 2. Rozbalte ZIP do libovolné složky a dvakrát klikněte na **`spustit.bat`**.
-3. Při prvním spuštění se otevře soubor `.env` v Poznámkovém bloku: můžete ho jen zavřít (admin se přihlásí jako **admin / admin**), nebo hesla změnit.
+3. Při prvním spuštění se otevře soubor `.env` v Poznámkovém bloku: stačí ho zavřít. Přihlásíte se jménem **admin**.
 4. Po instalaci (první spuštění trvá několik minut) se sám otevře prohlížeč na http://localhost:3000.
 
 Okno příkazového řádku nechte otevřené, dokud CRM používáte. Na macOS / Linuxu je obdoba `spustit.sh`.
@@ -52,7 +52,17 @@ Spuštění:
 npm run dev
 ```
 
-Otevřete http://localhost:3000 a přihlaste se jako **admin / admin** (jméno `admin`, heslo z `ADMIN_PASSWORD`, výchozí `admin`). Místo jména lze zadat i e-mail `ADMIN_EMAIL`.
+Otevřete http://localhost:3000 a zadejte jméno **admin** (nebo e-mail `ADMIN_EMAIL`).
+
+### Způsob přihlášení (`LOGIN_MODE` v `.env`)
+
+| Hodnota | Přihlášení |
+| --- | --- |
+| `bez-hesla` (výchozí) | stačí jméno nebo e-mail, jen pro zkoušení na vlastním počítači |
+| `heslo` | jméno/e-mail a heslo (admin / admin) |
+| `heslo-kod` | heslo a 6místný kód z e-mailu |
+
+Po změně `.env` CRM restartujte (zavřete okno a spusťte `spustit.bat` znovu).
 Testovací účty jsou `test01@2melektro.eu` až `test10@2melektro.eu` s heslem `TEST_USER_PASSWORD`
 (01–04 a 09 obchodníci, 05–08 a 10 technici).
 
@@ -68,7 +78,7 @@ Administrátor ji vidí v menu **Odeslané e-maily**.
   `SMTP_HOST="localhost"` a `SMTP_PORT="1025"`. Přijaté e-maily uvidíte na http://localhost:8025.
 - **Skutečná pošta:** do `.env` vyplňte SMTP svého hostingu (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, případně `SMTP_SECURE="1"` pro port 465) a `MAIL_FROM`.
 
-Ověření kódem lze vypnout nastavením `LOGIN_EMAIL_CODE="0"` (pak stačí heslo). Po změně `.env` CRM restartujte.
+Kód z e-mailu se vyžaduje jen při `LOGIN_MODE="heslo-kod"`.
 
 ## Data
 

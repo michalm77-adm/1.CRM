@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
+import { loginMode } from '@/lib/login-mode';
 import { requireUser } from '@/lib/auth';
 import { ActivityList } from '@/components/ActivityList';
 import { RoleBadges } from '@/components/Badges';
@@ -8,7 +9,7 @@ import { RoleBadges } from '@/components/Badges';
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ chyba?: string }> }) {
   const user = await requireUser();
   const { chyba } = await searchParams;
-  const defaultPassword = user.username === 'admin' && (await bcrypt.compare('admin', user.passwordHash));
+  const defaultPassword = loginMode() !== 'bez-hesla' && user.username === 'admin' && (await bcrypt.compare('admin', user.passwordHash));
   const endOfToday = new Date();
   endOfToday.setHours(23, 59, 59, 999);
   const [clients, customers, products, open, overdue, myTasks, recent] = await Promise.all([
