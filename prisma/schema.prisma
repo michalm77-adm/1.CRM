@@ -22,6 +22,7 @@ model User {
   subjects     Subject[]  @relation("SubjectOwner")
   assigned     Activity[] @relation("ActivityAssignee")
   created      Activity[] @relation("ActivityCreator")
+  authCodes    AuthCode[]
 }
 
 /// Subjekt = firma nebo fyzická osoba. Role klient / zákazník / dodavatel lze kombinovat.
@@ -153,4 +154,33 @@ model CustomField {
   active   Boolean  @default(true)
 
   @@unique([entity, key])
+}
+
+/// Všechny odeslané e-maily. Bez SMTP zůstanou jen tady (místní schránka v CRM).
+model EmailMessage {
+  id        Int       @id @default(autoincrement())
+  to        String
+  subject   String
+  body      String
+  status    String    @default("LOCAL") // LOCAL | SENT | FAILED
+  error     String?
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
+
+  @@index([createdAt])
+}
+
+/// Jednorázové kódy pro přihlášení a obnovu hesla (uložen jen otisk kódu).
+model AuthCode {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purpose   String // LOGIN | RESET
+  codeHash  String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, purpose])
 }

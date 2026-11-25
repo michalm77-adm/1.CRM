@@ -13,7 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     { href: '/aktivity', label: 'Aktivity' },
     { href: '/produkty', label: 'Produkty' },
     ...(user.role === 'ADMIN'
-      ? [{ sep: true as const }, { href: '/nastaveni', label: 'Nastavení' }, { href: '/uzivatele', label: 'Uživatelé' }]
+      ? [{ sep: true as const }, { href: '/nastaveni', label: 'Nastavení' }, { href: '/uzivatele', label: 'Uživatelé' }, { href: '/posta', label: 'Odeslané e-maily' }]
       : []),
   ];
   return (

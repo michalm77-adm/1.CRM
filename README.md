@@ -8,7 +8,8 @@ je v dokumentu „Návrh vlastního CRM“. Tato verze je **1. etapa: základ**.
 
 ## Co umí 1. etapa
 
-- **Přihlášení a role:** administrátor (vše včetně nastavení), obchodník (správa dat), technik (čtení a aktivity).
+- **Přihlášení heslem a kódem z e-mailu:** po zadání hesla přijde 6místný kód (platí 10 minut, max. 5 pokusů). Zapomenuté heslo se obnoví kódem z e-mailu.
+- **Role:** administrátor (vše včetně nastavení), obchodník (správa dat), technik (čtení a aktivity).
 - **Klienti a zákazníci:** firma nebo fyzická osoba, role klient / zákazník / dodavatel (lze kombinovat),
   stav, kategorie, načtení údajů z ARES podle IČO, kontaktní osoby, místa a objekty.
 - **Aktivity:** úkoly, schůzky, telefonáty, e-maily, poznámky s termínem a řešitelem; nástěnka s úkoly na 7 dní a těmi po termínu.
@@ -56,6 +57,18 @@ Testovací účty jsou `test01@2melektro.eu` až `test10@2melektro.eu` s heslem 
 (01–04 a 09 obchodníci, 05–08 a 10 technici).
 
 Rychlejší běh (bez vývojového režimu): `npm run build` a potom `npm start`.
+
+## E-maily
+
+Každý e-mail, který CRM pošle (přihlašovací kódy, obnova hesla), se uloží do **místní schránky**.
+Administrátor ji vidí v menu **Odeslané e-maily**.
+
+- **Bez nastavení (výchozí):** nic se neodesílá ven, kód se vypíše do okna, ve kterém CRM běží (`spustit.bat`).
+- **Mailpit na localhostu:** stáhněte [Mailpit](https://mailpit.axllent.org) (jeden soubor), spusťte ho a do `.env` dejte
+  `SMTP_HOST="localhost"` a `SMTP_PORT="1025"`. Přijaté e-maily uvidíte na http://localhost:8025.
+- **Skutečná pošta:** do `.env` vyplňte SMTP svého hostingu (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, případně `SMTP_SECURE="1"` pro port 465) a `MAIL_FROM`.
+
+Ověření kódem lze vypnout nastavením `LOGIN_EMAIL_CODE="0"` (pak stačí heslo). Po změně `.env` CRM restartujte.
 
 ## Data
 
