@@ -1,0 +1,187 @@
+// Datový model CRM – 1. etapa (adresář, produkty, aktivity, nastavení).
+// Lokálně běží na SQLite; pro server stačí změnit provider na "postgresql".
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Role: ADMIN (vše vč. nastavení), OBCHODNIK (data), TECHNIK (čtení + aktivity)
+model User {
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
+  username     String?    @unique // volitelné přihlašovací jméno (např. "admin")
+  name         String
+  passwordHash String
+  role         String     @default("OBCHODNIK")
+  active       Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  subjects     Subject[]  @relation("SubjectOwner")
+  assigned     Activity[] @relation("ActivityAssignee")
+  created      Activity[] @relation("ActivityCreator")
+  authCodes    AuthCode[]
+}
+
+/// Subjekt = firma nebo fyzická osoba. Role klient / zákazník / dodavatel lze kombinovat.
+model Subject {
+  id         Int        @id @default(autoincrement())
+  kind       String     @default("FIRMA") // FIRMA | OSOBA
+  name       String
+  ico        String?
+  dic        String?
+  isClient   Boolean    @default(false) // servis a revize
+  isCustomer Boolean    @default(false) // zakoupené produkty, záruky
+  isSupplier Boolean    @default(false)
+  statusId   Int?
+  status     CodeItem?  @relation("SubjectStatus", fields: [statusId], references: [id])
+  categoryId Int?
+  category   CodeItem?  @relation("SubjectCategory", fields: [categoryId], references: [id])
+  email      String?
+  phone      String?
+  web        String?
+  street     String?
+  city       String?
+  zip        String?
+  country    String?    @default("CZ")
+  note       String?
+  custom     Json?
+  ownerId    Int?
+  owner      User?      @relation("SubjectOwner", fields: [ownerId], references: [id])
+  contacts   Contact[]
+  sites      Site[]
+  activities Activity[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([name])
+  @@index([ico])
+}
+
+model Contact {
+  id         Int        @id @default(autoincrement())
+  subjectId  Int
+  subject    Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  firstName  String?
+  lastName   String
+  position   String?
+  email      String?
+  phone      String?
+  note       String?
+  custom     Json?
+  activities Activity[]
+  createdAt  DateTime   @default(now())
+}
+
+/// Místo / objekt u subjektu (budova, provozovna, místo instalace)
+model Site {
+  id        Int      @id @default(autoincrement())
+  subjectId Int
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  name      String
+  street    String?
+  city      String?
+  zip       String?
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id                     Int      @id @default(autoincrement())
+  code                   String?
+  name                   String
+  unit                   String   @default("ks")
+  price                  Float    @default(0)
+  vatRate                Float    @default(21)
+  warrantyMonths         Int?
+  revisionIntervalMonths Int?
+  active                 Boolean  @default(true)
+  note                   String?
+  custom                 Json?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+/// Aktivita: UKOL | SCHUZKA | TELEFONAT | EMAIL | POZNAMKA
+model Activity {
+  id          Int       @id @default(autoincrement())
+  type        String    @default("UKOL")
+  title       String
+  description String?
+  dueAt       DateTime?
+  done        Boolean   @default(false)
+  doneAt      DateTime?
+  subjectId   Int?
+  subject     Subject?  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  contactId   Int?
+  contact     Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  assigneeId  Int?
+  assignee    User?     @relation("ActivityAssignee", fields: [assigneeId], references: [id])
+  createdById Int?
+  createdBy   User?     @relation("ActivityCreator", fields: [createdById], references: [id])
+  custom      Json?
+  createdAt   DateTime  @default(now())
+
+  @@index([dueAt])
+}
+
+/// Položka číselníku (stavy, kategorie…). list = kód číselníku, např. "subject_status".
+model CodeItem {
+  id                Int       @id @default(autoincrement())
+  list              String
+  label             String
+  color             String?
+  sort              Int       @default(0)
+  active            Boolean   @default(true)
+  subjectsByStatus  Subject[] @relation("SubjectStatus")
+  subjectsByCategory Subject[] @relation("SubjectCategory")
+
+  @@index([list])
+}
+
+/// Vlastní pole definovaná v nastavení. Hodnoty se ukládají do sloupce "custom" dané entity.
+model CustomField {
+  id       Int      @id @default(autoincrement())
+  entity   String // subject | contact | product | activity
+  key      String
+  label    String
+  type     String   @default("text") // text | textarea | number | date | select | checkbox
+  options  String? // pro select: možnosti oddělené novým řádkem
+  required Boolean  @default(false)
+  sort     Int      @default(0)
+  active   Boolean  @default(true)
+
+  @@unique([entity, key])
+}
+
+/// Všechny odeslané e-maily. Bez SMTP zůstanou jen tady (místní schránka v CRM).
+model EmailMessage {
+  id        Int       @id @default(autoincrement())
+  to        String
+  subject   String
+  body      String
+  status    String    @default("LOCAL") // LOCAL | SENT | FAILED
+  error     String?
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
+
+  @@index([createdAt])
+}
+
+/// Jednorázové kódy pro přihlášení a obnovu hesla (uložen jen otisk kódu).
+model AuthCode {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purpose   String // LOGIN | RESET
+  codeHash  String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, purpose])
+}

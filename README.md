@@ -1,3 +1,97 @@
 # CRM 2M elektro
 
-Vlastní CRM pro 2M elektro. Kód přichází po etapách přes pull requesty.
+Vlastní CRM pro 2M elektro: adresář klientů a zákazníků, kontaktní osoby, místa instalace,
+produkty, aktivity a vlastní pole. Vzhled odpovídá webu 2melektro.eu (tmavý i světlý motiv).
+
+Návrh celého systému (lead → obchodní případ → soutěž → nabídka → faktura, servis a záruky)
+je v dokumentu „Návrh vlastního CRM“. Tato verze je **1. etapa: základ**.
+
+## Co umí 1. etapa
+
+- **Přihlášení heslem a kódem z e-mailu:** po zadání hesla přijde 6místný kód (platí 10 minut, max. 5 pokusů). Zapomenuté heslo se obnoví kódem z e-mailu.
+- **Role:** administrátor (vše včetně nastavení), obchodník (správa dat), technik (čtení a aktivity).
+- **Klienti a zákazníci:** firma nebo fyzická osoba, role klient / zákazník / dodavatel (lze kombinovat),
+  stav, kategorie, načtení údajů z ARES podle IČO, kontaktní osoby, místa a objekty.
+- **Aktivity:** úkoly, schůzky, telefonáty, e-maily, poznámky s termínem a řešitelem; nástěnka s úkoly na 7 dní a těmi po termínu.
+- **Produkty:** cena, DPH, záruční doba a interval revize (připraveno pro servisní modul).
+- **Nastavení bez programování:** vlastní pole (text, číslo, datum, výběr, ano/ne…) ke klientům,
+  osobám, produktům i aktivitám; vlastní stavy a kategorie klientů.
+- **Uživatelé:** zakládání, role, vypnutí účtu, změna hesla.
+
+## Nejrychlejší spuštění ve Windows
+
+1. Nainstalujte **Node.js LTS** z https://nodejs.org (stačí jednou).
+2. Rozbalte ZIP do libovolné složky a dvakrát klikněte na **`spustit.bat`**.
+3. Při prvním spuštění se otevře soubor `.env` v Poznámkovém bloku: stačí ho zavřít. Přihlásíte se jménem **admin**.
+4. Po instalaci (první spuštění trvá několik minut) se sám otevře prohlížeč na http://localhost:3000.
+
+Okno příkazového řádku nechte otevřené, dokud CRM používáte. Na macOS / Linuxu je obdoba `spustit.sh`.
+
+## Spuštění ručně (Windows, macOS, Linux)
+
+Potřebujete **Node.js 20 nebo novější** (https://nodejs.org, verze LTS) a Git.
+
+```bash
+git clone https://github.com/michalm77-adm/1.crm.git
+cd 1.crm
+npm install
+```
+
+Zkopírujte `.env.example` na `.env` (ve Windows: `copy .env.example .env`) a v souboru `.env`
+**změňte hesla** `ADMIN_PASSWORD` a `TEST_USER_PASSWORD` a nastavte vlastní `SESSION_SECRET`.
+
+Pak vytvořte databázi a výchozí účty:
+
+```bash
+npm run setup
+```
+
+Spuštění:
+
+```bash
+npm run dev
+```
+
+Otevřete http://localhost:3000 a zadejte jméno **admin** (nebo e-mail `ADMIN_EMAIL`).
+
+### Způsob přihlášení (`LOGIN_MODE` v `.env`)
+
+| Hodnota | Přihlášení |
+| --- | --- |
+| `bez-hesla` (výchozí) | stačí jméno nebo e-mail, jen pro zkoušení na vlastním počítači |
+| `heslo` | jméno/e-mail a heslo (admin / admin) |
+| `heslo-kod` | heslo a 6místný kód z e-mailu |
+
+Po změně `.env` CRM restartujte (zavřete okno a spusťte `spustit.bat` znovu).
+Testovací účty jsou `test01@2melektro.eu` až `test10@2melektro.eu` s heslem `TEST_USER_PASSWORD`
+(01–04 a 09 obchodníci, 05–08 a 10 technici).
+
+Rychlejší běh (bez vývojového režimu): `npm run build` a potom `npm start`.
+
+## E-maily
+
+Každý e-mail, který CRM pošle (přihlašovací kódy, obnova hesla), se uloží do **místní schránky**.
+Administrátor ji vidí v menu **Odeslané e-maily**.
+
+- **Bez nastavení (výchozí):** nic se neodesílá ven, kód se vypíše do okna, ve kterém CRM běží (`spustit.bat`).
+- **Mailpit na localhostu:** stáhněte [Mailpit](https://mailpit.axllent.org) (jeden soubor), spusťte ho a do `.env` dejte
+  `SMTP_HOST="localhost"` a `SMTP_PORT="1025"`. Přijaté e-maily uvidíte na http://localhost:8025.
+- **Skutečná pošta:** do `.env` vyplňte SMTP svého hostingu (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, případně `SMTP_SECURE="1"` pro port 465) a `MAIL_FROM`.
+
+Kód z e-mailu se vyžaduje jen při `LOGIN_MODE="heslo-kod"`.
+
+## Data
+
+Databáze je soubor `prisma/crm.db` (SQLite). Zálohujete ho prostým zkopírováním, když aplikace neběží.
+Při nasazení na server lze přejít na PostgreSQL změnou `provider` v `prisma/schema.prisma`.
+
+## Technologie
+
+Next.js 15 (React 19, TypeScript), Prisma 6, SQLite. Bez dalších služeb, ARES se volá přímo z aplikace.
+
+## Další etapy
+
+2. Obchod: leady, obchodní případy s nástěnkou, soutěže, nabídky s PDF.
+3. Faktury z finální nabídky (přímo v CRM).
+4. Servis: zařízení u zákazníků, záruky, revize, upozornění.
+5. Přehledy, vlastní pohledy, import z Raynetu.
